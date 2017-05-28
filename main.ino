@@ -19,6 +19,7 @@ int temp2 = 0;
 int ind1 = 0;
 int ind2 = 0;
 int ind3 = 0;
+int power = 0;
 int SetT;
 bool flagSetTemp = false;
 int count = 0;
@@ -160,12 +161,21 @@ void Buffer() {
     maxtemp = candidate[1];
   }
   Temperature = maxtemp;
-  Serial.print("t");
-  Serial.println(maxtemp);
-  Serial.print("i");
+  if (maxind1 || maxind2 || maxind3){
+    power = 1;
+  } else {
+    power = 0;
+  }
+  Serial.print(maxtemp);
+  Serial.print(";");
   Serial.print(maxind1);
+  Serial.print(";");
   Serial.print(maxind2);
-  Serial.println(maxind3);
+  Serial.print(";");
+  Serial.print(maxind3);
+  Serial.print(";");
+  Serial.print(power);
+  Serial.print(":");
 }
 
 void Button() {
