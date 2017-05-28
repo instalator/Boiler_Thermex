@@ -1,5 +1,5 @@
 # Boiler Thermex IF 50 V
-Управление водонагревателем Thermex IF 50 V через WiFi с помощью arduino pro mini и ESP8266.
+Управление водонагревателем Thermex IF 50 V через WiFi по протоколу MQTT с помощью Arduino pro mini и ESP8266.
 
 [Страница проекта](http://blog.instalator.ru/archives/681)
 
