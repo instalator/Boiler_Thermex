@@ -1,9 +1,9 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const char* ssid = "******";
-const char* password = "******";
-const char* mqtt_server = "192.168.1.1"; //Сервер MQTT
+const char* ssid = "***";
+const char* password = "***";
+const char* mqtt_server = "192.168.1.190"; //Сервер MQTT
 
 IPAddress ip(192,168,1,241);
 IPAddress gateway(192,168,1,1);
@@ -105,7 +105,6 @@ void setup() {
 }
 
 void loop() {
-  delay(20000);
   if(Serial.available() > 0){
     temp = Serial.parseInt();
     prsv = Serial.parseInt();
