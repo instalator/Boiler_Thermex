@@ -1,8 +1,8 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const char* ssid = "***";
-const char* password = "***";
+const char* ssid = "xxx";
+const char* password = "xxx";
 const char* mqtt_server = "192.168.1.190"; //Сервер MQTT
 
 IPAddress ip(192,168,1,241);
@@ -15,22 +15,25 @@ PubSubClient client(espClient);
 #define ID_CONNECT "Boiler"
 #define LED     2
 byte data[10] = {};
-int temp;
-int prsv;
-int dbl;
-int sngl;
-int pwr;
-bool power;
-int temp_prev;
-int prsv_prev;
-int dbl_prev;
-int sngl_prev;
-bool power_prev;
-char b[2];
+int temp = 0;
+int prsv = 0;
+int dbl = 0;
+int sngl = 0;
+int pwr = 0;
+bool power = true;
+int temp_prev = 0;
+int prsv_prev = 0;
+int dbl_prev = 0;
+int sngl_prev = 0;
+bool power_prev = false;
+char b[5];
+String inputString = "";
+boolean stringComplete = false;
 
 
 void setup_wifi() {
   delay(10);
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   WiFi.config(ip, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
@@ -103,28 +106,51 @@ void setup() {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 }
+char* IntToBool (int r) {
+    if (r > 0){
+      return "true";
+    } else{
+      return "false";
+    }
+}
 
 void loop() {
+  if (!client.connected()){
+    reconnect();
+  }
+  client.loop();
   if(Serial.available() > 0){
-    temp = Serial.parseInt();
-    prsv = Serial.parseInt();
-    dbl =  Serial.parseInt();
-    sngl = Serial.parseInt();
-    pwr =  Serial.parseInt();
-    
+    char inChar = (char)Serial.read(); 
+    inputString += inChar;
+    if (inChar == ':') {
+      stringComplete = true;
+      ParseStr();
+    } 
+  }
+}
+
+void ParseStr(){
+  String str = inputString;
+  if (stringComplete == true){
+    temp = str.substring(0, 2).toInt();
+    prsv = str.substring(3, 4).toInt();
+    dbl =  str.substring(5, 6).toInt();
+    sngl = str.substring(7, 8).toInt();
+    pwr =  str.substring(9, 10).toInt();
+
     if (pwr > 0){
       power = true;
     } else {
       power = false;
     }
-    if (Serial.read() == ':') {
-      if(temp != temp_prev || prsv != prsv_prev || dbl != dbl_prev || sngl != sngl_prev || power != power_prev){
+
+    if(prsv != prsv_prev || dbl != dbl_prev || sngl != sngl_prev || power != power_prev || temp >= (temp_prev + 2) || temp <= (temp_prev - 2)){
           temp_prev = temp;
           prsv_prev = prsv;
           dbl_prev = dbl;
           sngl_prev = sngl;
           power_prev = power;
-          char b[5]; 
+          
           String char_temp = String(temp);
           char_temp.toCharArray(b,5);
           client.publish("myhome/Boiler/temperature", b);
@@ -132,19 +158,8 @@ void loop() {
           client.publish("myhome/Boiler/double_power", IntToBool(dbl));
           client.publish("myhome/Boiler/single_power", IntToBool(sngl));
           client.publish("myhome/Boiler/power", IntToBool(power));
-      }
     }
+    inputString = "";
+    stringComplete = false;
   }
-  if (!client.connected()){
-    reconnect();
-  }
-  client.loop();
-}
-
-char* IntToBool (int r) {
-    if (r > 0){
-      return "true";
-    } else{
-      return "false";
-    }
 }
