@@ -1,13 +1,11 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
-const char* ssid = "xxx";
-const char* password = "xxx";
-const char* mqtt_server = "192.168.1.190"; //Сервер MQTT
-
-IPAddress ip(192,168,1,241);
-IPAddress gateway(192,168,1,1);
-IPAddress subnet(255,255,255,0);
+const char* ssid = "...";
+const char* password = "...";
+const char* mqtt_server = "192.168.88.190"; //Сервер MQTT
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -35,7 +33,6 @@ void setup_wifi() {
   delay(10);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  WiFi.config(ip, gateway, subnet);
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
     digitalWrite(LED, !digitalRead(LED));
@@ -46,6 +43,7 @@ void setup_wifi() {
 void reconnect() {
   digitalWrite(LED, !digitalRead(LED));
   while (!client.connected()) {
+    ArduinoOTA.handle();
     if (client.connect(ID_CONNECT)) {
       client.publish("myhome/Boiler/connection", "true");
       client.publish("myhome/Boiler/temperature", "");
@@ -105,6 +103,12 @@ void setup() {
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+  ArduinoOTA.setHostname("Boiler");
+  ArduinoOTA.onStart([]() {  });
+  ArduinoOTA.onEnd([]() {  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {  });
+  ArduinoOTA.onError([](ota_error_t error) {  });
+  ArduinoOTA.begin();
 }
 char* IntToBool (int r) {
     if (r > 0){
@@ -115,6 +119,7 @@ char* IntToBool (int r) {
 }
 
 void loop() {
+  ArduinoOTA.handle();
   if (!client.connected()){
     reconnect();
   }
